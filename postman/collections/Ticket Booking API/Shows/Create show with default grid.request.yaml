@@ -1,0 +1,34 @@
+# rows and seatsPerRow omitted, so the default 5 x 10 grid is generated
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/shows'
+order: 4000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "movieName": "Default Grid Show",
+      "venue": "Starlight Multiplex - Screen 3",
+      "startTime": "{{startTime}}",
+      "seatPrice": 199.99
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 201 Created', () => pm.response.to.have.status(201));
+      const id = pm.response.json().id;
+      pm.collectionVariables.set('otherShowId', id);
+      pm.sendRequest(pm.environment.replaceIn('{{baseUrl}}') + '/shows/' + id + '/seats', (err, res) => {
+        pm.test('Default grid is 50 seats, A1 to E10', () => {
+          pm.expect(err).to.be.null;
+          const seats = res.json();
+          pm.expect(seats).to.have.length(50);
+          pm.expect(seats[0].seatNumber).to.eql('A1');
+          pm.expect(seats[49].seatNumber).to.eql('E10');
+        });
+        pm.collectionVariables.set('otherShowSeatId', res.json()[0].id);
+      });

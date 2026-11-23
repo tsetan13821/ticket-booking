@@ -1,0 +1,25 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/bookings'
+order: 5000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "customerName": "Dup Tester",
+      "showId": {{showId}},
+      "seatIds": [{{seatB5}}, {{seatB5}}]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 201 Created', () => pm.response.to.have.status(201));
+      const b = pm.response.json();
+      pm.test('Seat is booked once and charged once', () => {
+        pm.expect(b.seats.map(s => s.seatNumber)).to.eql(['B5']);
+        pm.expect(b.totalAmount).to.eql(250);
+      });

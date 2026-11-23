@@ -1,0 +1,34 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/bookings'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "customerName": "Tenzin",
+      "showId": {{showId}},
+      "seatIds": [{{seatA1}}, {{seatA2}}]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 201 Created', () => pm.response.to.have.status(201));
+      const b = pm.response.json();
+      pm.test('Booking is CONFIRMED for A1 and A2', () => {
+        pm.expect(b.status).to.eql('CONFIRMED');
+        pm.expect(b.customerName).to.eql('Tenzin');
+        pm.expect(b.showId).to.eql(Number(pm.collectionVariables.get('showId')));
+        pm.expect(b.movieName).to.eql(pm.collectionVariables.get('movieName'));
+        pm.expect(b.seats.map(s => s.seatNumber)).to.eql(['A1', 'A2']);
+      });
+      pm.test('Total is the sum of seat prices', () => pm.expect(b.totalAmount).to.eql(500));
+      pm.test('createdAt is an ISO timestamp', () => pm.expect(Date.parse(b.createdAt)).to.not.be.NaN);
+      pm.test('Location header points at the booking', () => {
+        pm.expect(pm.response.headers.get('Location')).to.match(new RegExp('/bookings/' + b.id + '$'));
+      });
+      pm.collectionVariables.set('bookingId', b.id);

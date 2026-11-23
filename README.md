@@ -175,6 +175,23 @@ Tests run against an in-memory H2 database, so no setup is needed.
 - **`TicketBookingApiTest`**: end-to-end tests of all six endpoints, including all-or-nothing
   booking, cancel and rebook, and the 400 / 404 / 409 error responses.
 
+### API tests (Postman)
+
+`postman/` holds a Postman collection that tests the running server end to end: all six
+endpoints, the 400 / 404 / 409 error responses, and two live concurrency races in which 10
+simultaneous bookings compete for the same seats and exactly one wins.
+
+Start the server, then run it with the [Postman CLI](https://learning.postman.com/docs/postman-cli/postman-cli-overview/):
+
+```bash
+postman collection run "postman/collections/Ticket Booking API" \
+  -e postman/environments/Local.environment.yaml
+```
+
+The collection creates its own show on each run, so it can be run repeatedly.
+
+### Concurrency test on PostgreSQL
+
 To run the concurrency test against PostgreSQL instead of H2:
 
 ```bash

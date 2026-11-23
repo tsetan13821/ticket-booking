@@ -1,0 +1,3 @@
+$kind: collection
+description: 'Fire 10 simultaneous bookings at the live server and check exactly one wins'
+order: 4000

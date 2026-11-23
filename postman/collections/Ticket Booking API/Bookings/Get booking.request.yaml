@@ -1,0 +1,16 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/bookings/{{bookingId}}'
+order: 6000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+      const b = pm.response.json();
+      pm.test('Returns the confirmed booking', () => {
+        pm.expect(b.id).to.eql(Number(pm.collectionVariables.get('bookingId')));
+        pm.expect(b.status).to.eql('CONFIRMED');
+        pm.expect(b.seats.map(s => s.seatNumber)).to.eql(['A1', 'A2']);
+        pm.expect(b.totalAmount).to.eql(500);
+      });

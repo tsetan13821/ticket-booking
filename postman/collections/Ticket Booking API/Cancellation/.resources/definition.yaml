@@ -1,0 +1,3 @@
+$kind: collection
+description: 'Cancel a booking, free its seats, and rebook them'
+order: 3000

@@ -1,0 +1,38 @@
+# Half the racers ask for [A5, B1], half for [B1, A5]; id-ordered locking means no deadlock
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/shows/{{showId}}/seats'
+order: 2000
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      // Fire 10 booking requests at the same instant; record every status code.
+      const base = pm.environment.replaceIn('{{baseUrl}}');
+      const showId = Number(pm.collectionVariables.get('showId'));
+      const statuses = [];
+      for (let i = 0; i < 10; i++) {
+        const seatIds = i % 2 === 0 ? [Number(pm.collectionVariables.get('seatA5')), Number(pm.collectionVariables.get('seatB1'))] : [Number(pm.collectionVariables.get('seatB1')), Number(pm.collectionVariables.get('seatA5'))];
+        pm.sendRequest({
+          url: base + '/bookings',
+          method: 'POST',
+          header: { 'Content-Type': 'application/json' },
+          body: { mode: 'raw', raw: JSON.stringify({ customerName: 'racer-' + i, showId, seatIds }) }
+        }, (err, res) => {
+          statuses.push(err ? 'error: ' + err.message : res.code);
+          pm.collectionVariables.set('raceOverlap', JSON.stringify(statuses));
+        });
+      }
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      const statuses = JSON.parse(pm.collectionVariables.get('raceOverlap'));
+      console.log('Race statuses:', statuses.join(', '));
+      pm.test('All 10 racing requests completed (no deadlock)', () => pm.expect(statuses).to.have.length(10));
+      pm.test('Exactly one booking succeeded (201)', () => pm.expect(statuses.filter(s => s === 201)).to.have.length(1));
+      pm.test('The other nine got 409 Conflict', () => pm.expect(statuses.filter(s => s === 409)).to.have.length(9));
+      pm.test('A5 and B1 are both BOOKED', () => {
+        const seats = pm.response.json();
+        pm.expect(seats.find(s => s.seatNumber === 'A5').status).to.eql('BOOKED');
+        pm.expect(seats.find(s => s.seatNumber === 'B1').status).to.eql('BOOKED');
+      });

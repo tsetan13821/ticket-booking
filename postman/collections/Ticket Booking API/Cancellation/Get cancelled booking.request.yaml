@@ -1,0 +1,10 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/bookings/{{bookingId}}'
+order: 3000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+      pm.test('Status is persisted as CANCELLED', () => pm.expect(pm.response.json().status).to.eql('CANCELLED'));

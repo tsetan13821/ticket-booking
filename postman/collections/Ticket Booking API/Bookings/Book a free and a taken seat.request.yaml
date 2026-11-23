@@ -1,0 +1,27 @@
+# A3 is free but A2 is taken: nothing may be booked
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/bookings'
+order: 4000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "customerName": "Someone Else",
+      "showId": {{showId}},
+      "seatIds": [{{seatA3}}, {{seatA2}}]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 409 Conflict', () => pm.response.to.have.status(409));
+      pm.sendRequest(pm.environment.replaceIn('{{baseUrl}}') + '/shows/' + pm.collectionVariables.get('showId') + '/seats', (err, res) => {
+        pm.test('All or nothing: A3 is still AVAILABLE', () => {
+          const a3 = res.json().find(s => s.seatNumber === 'A3');
+          pm.expect(a3.status).to.eql('AVAILABLE');
+        });
+      });

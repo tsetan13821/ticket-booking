@@ -1,0 +1,21 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/shows/{{showId}}/seats'
+order: 3000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+      const seats = pm.response.json();
+      pm.test('2 x 5 grid in row order A1..B5', () => {
+        pm.expect(seats.map(s => s.seatNumber)).to.eql(['A1','A2','A3','A4','A5','B1','B2','B3','B4','B5']);
+      });
+      pm.test('All seats AVAILABLE at 250.00', () => {
+        seats.forEach(s => {
+          pm.expect(s.status).to.eql('AVAILABLE');
+          pm.expect(s.price).to.eql(250);
+        });
+      });
+      // Save seat ids by seat number for the booking requests.
+      seats.forEach(s => pm.collectionVariables.set('seat' + s.seatNumber, s.id));

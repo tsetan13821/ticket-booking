@@ -1,0 +1,3 @@
+$kind: collection
+description: 'Book seats, all-or-nothing behaviour, and booking errors'
+order: 2000

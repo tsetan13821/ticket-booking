@@ -1,0 +1,3 @@
+$kind: collection
+description: 'Create a show, list shows, read its seat map, and show validation errors'
+order: 1000

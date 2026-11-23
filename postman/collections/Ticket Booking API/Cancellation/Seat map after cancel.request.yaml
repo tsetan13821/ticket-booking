@@ -1,0 +1,13 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/shows/{{showId}}/seats'
+order: 2000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      const byNumber = Object.fromEntries(pm.response.json().map(s => [s.seatNumber, s.status]));
+      pm.test('A1 and A2 are AVAILABLE again', () => {
+        pm.expect(byNumber.A1).to.eql('AVAILABLE');
+        pm.expect(byNumber.A2).to.eql('AVAILABLE');
+      });

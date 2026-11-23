@@ -1,0 +1,20 @@
+$kind: collection
+name: Ticket Booking API
+description: >-
+  End-to-end checks for the ticket booking backend: shows, seat maps, booking,
+  cancellation, concurrent booking races and error responses. Run the folders in
+  order; later requests use ids saved by earlier ones. Needs the baseUrl
+  variable from the Local environment.
+scripts:
+  - type: http:afterResponse
+    language: text/javascript
+    code: |-
+      // Every error response must use the RFC 9457 problem detail format.
+      if (pm.response.code >= 400) {
+        pm.test('Error is an RFC 9457 problem detail', () => {
+          pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json');
+          const p = pm.response.json();
+          pm.expect(p.status).to.eql(pm.response.code);
+          pm.expect(p.title).to.be.a('string').and.not.empty;
+        });
+      }

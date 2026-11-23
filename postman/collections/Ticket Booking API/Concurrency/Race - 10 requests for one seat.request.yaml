@@ -1,0 +1,36 @@
+# Pre-request script sends 10 concurrent bookings for seat A4; this request then reads the seat map
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/shows/{{showId}}/seats'
+order: 1000
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      // Fire 10 booking requests at the same instant; record every status code.
+      const base = pm.environment.replaceIn('{{baseUrl}}');
+      const showId = Number(pm.collectionVariables.get('showId'));
+      const statuses = [];
+      for (let i = 0; i < 10; i++) {
+        const seatIds = [Number(pm.collectionVariables.get('seatA4'))];
+        pm.sendRequest({
+          url: base + '/bookings',
+          method: 'POST',
+          header: { 'Content-Type': 'application/json' },
+          body: { mode: 'raw', raw: JSON.stringify({ customerName: 'racer-' + i, showId, seatIds }) }
+        }, (err, res) => {
+          statuses.push(err ? 'error: ' + err.message : res.code);
+          pm.collectionVariables.set('raceSingle', JSON.stringify(statuses));
+        });
+      }
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      const statuses = JSON.parse(pm.collectionVariables.get('raceSingle'));
+      console.log('Race statuses:', statuses.join(', '));
+      pm.test('All 10 racing requests completed', () => pm.expect(statuses).to.have.length(10));
+      pm.test('Exactly one booking succeeded (201)', () => pm.expect(statuses.filter(s => s === 201)).to.have.length(1));
+      pm.test('The other nine got 409 Conflict', () => pm.expect(statuses.filter(s => s === 409)).to.have.length(9));
+      pm.test('Seat A4 ends up BOOKED', () => {
+        pm.expect(pm.response.json().find(s => s.seatNumber === 'A4').status).to.eql('BOOKED');
+      });

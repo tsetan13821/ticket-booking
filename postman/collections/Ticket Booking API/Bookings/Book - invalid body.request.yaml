@@ -1,0 +1,23 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/bookings'
+order: 7000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "customerName": "  ",
+      "showId": null,
+      "seatIds": []
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 400', () => pm.response.to.have.status(400));
+      pm.test('Validation errors listed per field', () => {
+        pm.expect(pm.response.json().errors).to.have.all.keys('customerName', 'showId', 'seatIds');
+      });

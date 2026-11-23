@@ -1,0 +1,10 @@
+$kind: http-request
+method: GET
+url: '{{baseUrl}}/shows/999999/seats'
+order: 6000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 404', () => pm.response.to.have.status(404));
+      pm.test('Detail names the show', () => pm.expect(pm.response.json().detail).to.eql('Show 999999 not found'));

@@ -1,0 +1,3 @@
+$kind: collection
+description: 'Framework-level errors also return problem details'
+order: 5000

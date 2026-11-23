@@ -1,0 +1,42 @@
+# Creates a 2 x 5 show (A1..A5, B1..B5) used by the rest of the run
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/shows'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "movieName": "{{movieName}}",
+      "venue": "Galaxy Cinemas - Screen 1",
+      "startTime": "{{startTime}}",
+      "seatPrice": 250.00,
+      "rows": 2,
+      "seatsPerRow": 5
+    }
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      // startTime must be in the future: use 10 days from now, local ISO without zone.
+      const d = new Date(Date.now() + 10 * 24 * 3600 * 1000);
+      pm.collectionVariables.set('startTime', d.toISOString().slice(0, 19));
+      pm.collectionVariables.set('movieName', 'Postman Test ' + Date.now());
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 201 Created', () => pm.response.to.have.status(201));
+      const show = pm.response.json();
+      pm.test('Body echoes the show', () => {
+        pm.expect(show.id).to.be.a('number');
+        pm.expect(show.movieName).to.eql(pm.collectionVariables.get('movieName'));
+        pm.expect(show.venue).to.eql('Galaxy Cinemas - Screen 1');
+        pm.expect(show.startTime).to.eql(pm.collectionVariables.get('startTime'));
+      });
+      pm.test('Location header points at the seat map', () => {
+        pm.expect(pm.response.headers.get('Location')).to.match(new RegExp('/shows/' + show.id + '/seats$'));
+      });
+      pm.collectionVariables.set('showId', show.id);

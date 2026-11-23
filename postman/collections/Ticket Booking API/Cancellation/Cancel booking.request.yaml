@@ -1,0 +1,14 @@
+$kind: http-request
+method: DELETE
+url: '{{baseUrl}}/bookings/{{bookingId}}'
+order: 1000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 200', () => pm.response.to.have.status(200));
+      const b = pm.response.json();
+      pm.test('Booking is CANCELLED', () => pm.expect(b.status).to.eql('CANCELLED'));
+      pm.test('Cancelled booking still lists its seats', () => {
+        pm.expect(b.seats.map(s => s.seatNumber)).to.eql(['A1', 'A2']);
+      });

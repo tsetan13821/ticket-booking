@@ -1,0 +1,28 @@
+# Blank name, past start time, negative price and too many rows
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/shows'
+order: 5000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "movieName": "",
+      "venue": "Hall",
+      "startTime": "2020-01-01T10:00:00",
+      "seatPrice": -5,
+      "rows": 30
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 400', () => pm.response.to.have.status(400));
+      const p = pm.response.json();
+      pm.test('Validation errors listed per field', () => {
+        pm.expect(p.title).to.eql('Validation Failed');
+        pm.expect(p.errors).to.have.all.keys('movieName', 'startTime', 'seatPrice', 'rows');
+      });

@@ -1,0 +1,21 @@
+$kind: http-request
+method: POST
+url: '{{baseUrl}}/bookings'
+order: 3000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "customerName": "Someone Else",
+      "showId": {{showId}},
+      "seatIds": [{{seatA2}}]
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status is 409 Conflict', () => pm.response.to.have.status(409));
+      pm.test('Detail names the taken seat', () => pm.expect(pm.response.json().detail).to.eql('Seats [A2] are already booked'));

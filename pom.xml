@@ -11,8 +11,8 @@
 	<groupId>com.tenzin</groupId>
 	<artifactId>demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
+	<name>ticket-booking</name>
+	<description>Ticket booking backend with transactional seat booking and pessimistic locking</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -52,6 +52,11 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

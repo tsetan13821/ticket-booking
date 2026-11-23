@@ -1,0 +1,14 @@
+# Tests run against in-memory H2 so they need no database setup.
+# H2 supports SELECT ... FOR UPDATE row locks, so the concurrency test exercises real locking.
+spring:
+  datasource:
+    url: jdbc:h2:mem:ticketbooking;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  sql:
+    init:
+      # data.sql uses PostgreSQL-only syntax; tests create their own data.
+      mode: never

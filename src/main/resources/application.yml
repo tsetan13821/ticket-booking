@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: ticket-booking
+
+  datasource:
+    # Override with environment variables instead of committing real credentials.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ticket_booking}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    # Run data.sql only after Hibernate has created the tables.
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
